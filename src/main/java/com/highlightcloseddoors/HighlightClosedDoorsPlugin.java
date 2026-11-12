@@ -90,28 +90,37 @@ public class HighlightClosedDoorsPlugin extends Plugin
 			return;
 		}
 
-		Set<TileObject> found = Collections.newSetFromMap(new IdentityHashMap<>());
-		for (Tile[][] plane : scene.getTiles())
+		Tile[][] currentPlane = getPlaneTiles(scene.getTiles(), client.getPlane());
+		if (currentPlane == null)
 		{
-			for (Tile[] row : plane)
+			closedDoors = Collections.emptySet();
+			return;
+		}
+
+		Set<TileObject> found = Collections.newSetFromMap(new IdentityHashMap<>());
+		for (Tile[] row : currentPlane)
+		{
+			for (Tile tile : row)
 			{
-				for (Tile tile : row)
+				if (tile == null)
 				{
-					if (tile == null)
-					{
-						continue;
-					}
-					addIfClosedDoor(found, tile.getWallObject());
-					addIfClosedDoor(found, tile.getDecorativeObject());
-					addIfClosedDoor(found, tile.getGroundObject());
-					for (GameObject gameObject : tile.getGameObjects())
-					{
-						addIfClosedDoor(found, gameObject);
-					}
+					continue;
+				}
+				addIfClosedDoor(found, tile.getWallObject());
+				addIfClosedDoor(found, tile.getDecorativeObject());
+				addIfClosedDoor(found, tile.getGroundObject());
+				for (GameObject gameObject : tile.getGameObjects())
+				{
+					addIfClosedDoor(found, gameObject);
 				}
 			}
 		}
 		closedDoors = Collections.unmodifiableSet(found);
+	}
+
+	static Tile[][] getPlaneTiles(Tile[][][] tiles, int plane)
+	{
+		return tiles != null && plane >= 0 && plane < tiles.length ? tiles[plane] : null;
 	}
 
 	private void addIfClosedDoor(Set<TileObject> destination, TileObject object)
